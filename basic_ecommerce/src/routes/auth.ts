@@ -35,7 +35,7 @@ router.post('/login', async (req, res) => {
     });
 });
 
-router.post('/signup', async (req, res) => {
+router.post('/register', async (req, res) => {
     const authService = new AuthService();
     const { username, name, type, email, password } = req.body;
     if (!username || !name || !email || !password) {
@@ -45,7 +45,7 @@ router.post('/signup', async (req, res) => {
         });
     }
     const [err, token] = await nest(
-        authService.signUpAndGenerateToken({
+        authService.registerAndGenerateToken({
             username,
             name,
             email,

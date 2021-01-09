@@ -1,5 +1,5 @@
 const configObject = {
-    secret: 'QNNF15284djfcmcc',
+    secret: process.env.JWT_SECRET,
 };
 const jwtConfig = Object.freeze(configObject);
 

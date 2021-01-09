@@ -3,14 +3,14 @@ import {DataTypes, Model, ModelCtor, Sequelize} from "sequelize";
 
 export interface IProductModel extends IProduct, Model {}
 
-export class ProductModel{
-    private static instance: ProductModel;
+export class ProductModelManager{
+    private static instance: ProductModelManager;
     private Product: ModelCtor<IProductModel> = {} as ModelCtor<IProductModel>;
-    static getInstance(): ProductModel {
-        if (!ProductModel.instance) {
-            ProductModel.instance = new ProductModel();
+    static getInstance(): ProductModelManager {
+        if (!ProductModelManager.instance) {
+            ProductModelManager.instance = new ProductModelManager();
         }
-        return ProductModel.instance;
+        return ProductModelManager.instance;
     }
 
     register(sequelize: Sequelize): void {
@@ -45,7 +45,7 @@ export class ProductModel{
                 timestamps: true,
                 createdAt: 'createdAt',
                 updatedAt: 'updatedAt',
-                indexes: [{ unique: true, fields: ['slug'] }],
+                indexes: [{ unique: true, fields: ['slug','catalogId'] }],
             }
         );
     }getModel(): ModelCtor<IProductModel> {
@@ -53,4 +53,4 @@ export class ProductModel{
     }
 }
 
-export default ProductModel.getInstance().getModel();
+export default ProductModelManager.getInstance().getModel();

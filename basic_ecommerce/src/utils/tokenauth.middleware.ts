@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import {
     IUserModel,
-    UserModel,
+    UserModelManager,
 } from '../lib/schema/models/user/userModel';
 import jwtObject from '../config/jwt.config';
 import logger from './logger';
@@ -22,7 +22,7 @@ export const checkToken = async (
             // eslint-disable-next-line camelcase
             const { user_id } = jwtPayload;
             res.setHeader('user_id', user_id);
-            const userModel = UserModel.getInstance().getModel();
+            const userModel = UserModelManager.getInstance().getModel();
             let err: Error;
             let userDetails: IUserModel;
             // eslint-disable-next-line prefer-const

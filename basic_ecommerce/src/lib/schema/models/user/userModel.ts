@@ -3,14 +3,14 @@ import {DataTypes, Model, ModelCtor, Sequelize} from "sequelize";
 
 export interface IUserModel extends IUser, Model {}
 
-export class UserModel{
-    private static instance: UserModel;
+export class UserModelManager{
+    private static instance: UserModelManager;
     private User: ModelCtor<IUserModel> = {} as ModelCtor<IUserModel>;
-    static getInstance(): UserModel {
-        if (!UserModel.instance) {
-            UserModel.instance = new UserModel();
+    static getInstance(): UserModelManager {
+        if (!UserModelManager.instance) {
+            UserModelManager.instance = new UserModelManager();
         }
-        return UserModel.instance;
+        return UserModelManager.instance;
     }
 
     register(sequelize: Sequelize): void {
@@ -62,6 +62,6 @@ export class UserModel{
     }
 }
 
-export default UserModel.getInstance().getModel();
+export default UserModelManager.getInstance().getModel();
 
 

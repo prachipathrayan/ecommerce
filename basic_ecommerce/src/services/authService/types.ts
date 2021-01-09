@@ -1,5 +1,5 @@
 export interface IUser {
-    signUpAndGenerateToken(signUpRequest: SignUpRequest): Promise<string | Error>;
+    registerAndGenerateToken(signUpRequest: SignUpRequest): Promise<string | Error>;
     logInAndGenerateToken(loginRequest: LoginRequest): Promise<string | Error>;
 }
 

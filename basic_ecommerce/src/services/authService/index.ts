@@ -4,7 +4,7 @@ import { IUser, LoginRequest, SignUpRequest } from './types';
 import logger from '../../utils/logger';
 import {
     IUserModel,
-    UserModel,
+    UserModelManager,
 } from '../../lib/schema/models/user/userModel';
 import jwt from 'jsonwebtoken';
 import jwtObject from '../../config/jwt.config';
@@ -15,7 +15,7 @@ export class AuthService implements IUser {
     async logInAndGenerateToken(
         loginRequest: LoginRequest
     ): Promise<string | Error> {
-        const User: ModelCtor<IUserModel> = UserModel.getInstance().getModel();
+        const User: ModelCtor<IUserModel> = UserModelManager.getInstance().getModel();
         let err: Error;
         let userDetails: IUserModel;
         let isValid: boolean | false;
@@ -46,10 +46,10 @@ export class AuthService implements IUser {
         return token;
     }
 
-    async signUpAndGenerateToken(
+    async registerAndGenerateToken(
         signUpRequest: SignUpRequest
     ): Promise<string | Error> {
-        const User = UserModel.getInstance().getModel();
+        const User = UserModelManager.getInstance().getModel();
         const userObject: IUserModel = User.build({
             username: signUpRequest.username,
             name: signUpRequest.name,
@@ -73,11 +73,21 @@ export class AuthService implements IUser {
         return token;
     }
 
-
+    private getJwtSecret() : string{
+        let key : string;
+        if(!jwtObject.secret){
+            logger.error('Error in getting your mySQL uri', {error : "Error in getting your mySQL uri"});
+            throw new Error('Error in getting your mySQL uri');
+        }
+        else{
+            key = jwtObject.secret;
+        }
+        return key;
+    }
     // eslint-disable-next-line camelcase,@typescript-eslint/require-await
     async generateToken(payload: { user_id: number }): Promise<string | Error> {
         try {
-            const token = jwt.sign(payload, jwtObject.secret, {
+            const token = jwt.sign(payload, this.getJwtSecret(), {
                 expiresIn: 172800000,
             });
             return token;

@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { nest } from './index';
-import logger from '../shared/logger';
+import logger from './logger';
 
 export const passwordHash = async (password: string): Promise<string> => {
     const saltRounds = 12;

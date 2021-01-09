@@ -1,14 +1,30 @@
-import {QueryTypes, Sequelize} from 'sequelize';
-import {IDatabase} from "./type";
+import {ModelCtor, QueryTypes, Sequelize} from 'sequelize';
+import {IDatabase} from "./types";
 import { nest } from '../../utils';
 import config from '../../config/index';
-import logger from "@shared/Logger";
+import logger from "../../utils/logger";
+import {IUserModel, UserModelManager} from "../schema/models/user/userModel";
+import {IProductModel, ProductModelManager} from "../schema/models/product/productModel";
+import {CatalogModelManager, ICatalogModel} from "../schema/models/catalogs/catalogsModel";
+import {IOrderModel, OrderModelManager} from "../schema/models/orders/ordersModel";
+import mysqlDbConfig from "../../config/index";
 
 
 
 export class MysqlManager implements IDatabase {
+    private getDbUri() : string{
+        let key : string;
+        if(!mysqlDbConfig.database.mysql.uri){
+            logger.error('Error in getting your mySQL uri', {error : "Error in getting your mySQL uri"});
+            throw new Error('Error in getting your mySQL uri');
+        }
+        else{
+            key = mysqlDbConfig.database.mysql.uri;
+        }
+        return key;
+    }
     private static instance: MysqlManager;
-    private dbUri: string = config.database.mysql.uri;
+    private dbUri: string = this.getDbUri();
 
     static getInstance(): MysqlManager {
         if (!MysqlManager.instance) {
@@ -36,19 +52,36 @@ export class MysqlManager implements IDatabase {
         return new Sequelize(this.dbUri, {logging: false});
     }
 
-    private async addStudentAssociation(): Promise<boolean | Error>{
+    private async addUserAssociation(): Promise<boolean | Error>{
+        const User: ModelCtor<IUserModel> = UserModelManager.getInstance().getModel();
+        const Catalog: ModelCtor<ICatalogModel> =CatalogModelManager.getInstance().getModel();
+        const Order: ModelCtor<IOrderModel> = OrderModelManager.getInstance().getModel();
+
+
+
         try{
-            StudentModel.getInstance()
-                .getModel()
-                .hasMany(EnrollmentModel.getInstance().getModel(), {
+            User.hasOne(Catalog, {
                     sourceKey: 'id',
-                    foreignKey: 'studentId',
+                    foreignKey: 'sellerId',
                 });
-            EnrollmentModel.getInstance()
-                .getModel()
-                .belongsTo(StudentModel.getInstance().getModel(), {
-                    foreignKey: 'studentId',
+            Catalog.belongsTo(User, {
+                    foreignKey: 'sellerId',
                 });
+            User.hasMany(Order, {
+                sourceKey: 'id',
+                foreignKey: 'sellerId',
+            });
+            Order.belongsTo(User, {
+                foreignKey: 'sellerId',
+            });
+            User.hasMany(Order, {
+                sourceKey: 'id',
+                foreignKey: 'buyerId',
+            });
+            Order.belongsTo(User, {
+                foreignKey: 'buyerId',
+            });
+
             return true;
         } catch (err) {
             logger.error('Error while adding association into studentModel', {
@@ -59,19 +92,18 @@ export class MysqlManager implements IDatabase {
     }
 
 
-    private async addCourseAssociation(): Promise<boolean | Error>{
+    private async addCatalogAssociation(): Promise<boolean | Error>{
+        const Product: ModelCtor<IProductModel> = ProductModelManager.getInstance().getModel();
+        const Catalog: ModelCtor<ICatalogModel> =CatalogModelManager.getInstance().getModel();
+
         try{
-            CourseModel.getInstance()
-                .getModel()
-                .hasMany(EnrollmentModel.getInstance().getModel(), {
-                    sourceKey: 'id',
-                    foreignKey: 'courseId',
-                });
-            EnrollmentModel.getInstance()
-                .getModel()
-                .belongsTo(CourseModel.getInstance().getModel(), {
-                    foreignKey: 'courseId',
-                });
+            Catalog.hasMany(Product, {
+                sourceKey: 'id',
+                foreignKey: 'catalogId',
+            });
+            Product.belongsTo(Catalog, {
+                foreignKey: 'catalogId',
+            });
             return true;
         } catch (err) {
             logger.error('Error while adding association into courseModel', {
@@ -84,11 +116,13 @@ export class MysqlManager implements IDatabase {
 
 
     private async registerModels(sequelize: Sequelize): Promise<boolean | Error> {
-        CourseModel.getInstance().register(sequelize);
-        StudentModel.getInstance().register(sequelize);
-        EnrollmentModel.getInstance().register(sequelize);
-        this.addCourseAssociation();
-        this.addStudentAssociation();
+        UserModelManager.getInstance().register(sequelize);
+        ProductModelManager.getInstance().register(sequelize);
+        CatalogModelManager.getInstance().register(sequelize);
+        OrderModelManager.getInstance().register(sequelize);
+
+        this.addUserAssociation();
+        this.addCatalogAssociation();
         const [err, isCreated] = await nest(sequelize.sync({ alter: true }));
         if (err && !isCreated) {
             logger.error('Error in registering models', { error: err });
