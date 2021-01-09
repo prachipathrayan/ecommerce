@@ -44,19 +44,17 @@ router.get('/orders', checkToken, async (req: Request, res: Response) => {
  *                       Add One - "POST /api/seller/create-catalog"
  ******************************************************************************/
 
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
 router.post('/create-catalog', checkToken, async (req: Request, res: Response) => {
-    const {
-        productList,
-    }: _json = req.body;
+    const productList: any = req.body;
     const  sellerId: any = res.getHeader('user_id');
-
     const sellerService = new SellerService();
-    let err : Error;
-    let isCreated : boolean;
+    console.log(productList.productList)
 
-    [err, isCreated]= await nest(
-        sellerService.makeCatalog(sellerId,productList));
+    const [err, isCreated]= await nest(
+        sellerService.makeCatalog(sellerId,productList.productList));
     if(err){
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         logger.error('Error in placing the order',{ 'error' : err});
         return res.json({
             error : err.message,

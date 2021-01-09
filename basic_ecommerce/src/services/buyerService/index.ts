@@ -86,7 +86,7 @@ export class BuyerService implements IBuyerServices {
     }
 
     // eslint-disable-next-line max-len
-    async placeOrder(id : number,buyerId : number, listOfProducts : _json): Promise<boolean | Error> {
+    async placeOrder(id : number,buyerId : number, listOfProducts : any): Promise<boolean | Error> {
         const orderObject: IOrderModel = this.Order.build({
             sellerId: id,
             buyerId: buyerId,

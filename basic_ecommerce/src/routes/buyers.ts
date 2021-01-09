@@ -65,7 +65,8 @@ router.get('/seller-catalog/:seller_id', checkToken, async (req: Request, res: R
  *                       Add One - "POST /api/buyer/create-order/:seller_id"
  ******************************************************************************/
 
-router.post('create-order/:seller_id', checkToken, async (req: Request, res: Response) => {
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
+router.post('/create-order/:seller_id', checkToken, async (req: Request, res: Response) => {
     const {
         productList,
     }: _json = req.body;

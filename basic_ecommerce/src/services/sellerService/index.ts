@@ -48,29 +48,31 @@ export class SellerService implements ISellerServices {
     }
 
 
-    async makeCatalog(id : number, listOfProducts : any): Promise<boolean | Error> {
-        let err: Error;
-        let catalogId: number;
-        [err,catalogId]=await nest(this.isUserGenuineSeller(id));
+    async makeCatalog(id : number, listOfProducts : productDetails[]): Promise<boolean | Error> {
+
+        const [err,catalogId]=await nest(this.isUserGenuineSeller(id));
         if(err){
             logger.error('User is not eligible for making catalog', {Error: err});
             throw new Error('User is not eligible for making catalog');
         }
-        const res : productDetails[]= JSON.parse(listOfProducts).items;
-        res.forEach((item: { name: string; price: number; }) => {
-            const productObject: IProductModel = this.Product.build({
-                name: item.name,
-                price: item.price,
-                catalogId: catalogId,
-            });
-            const data =  nest(productObject.save());
-            if (err) {
-                logger.error('Error while registering', {error: err});
-                throw new Error('Error while registering');
-            }
+        listOfProducts.forEach((item: { name: string; price: number; }) => {
+            this.createObject(item.name,item.price,catalogId)
         });
         return true
 
+    }
+    async createObject (name: string,price: number, catalogId:number) {
+        const productObject: IProductModel = this.Product.build({
+            name: name,
+            price: price,
+            slug: name,
+            catalogId: catalogId,
+        });
+        const [err, productData] = await nest(productObject.save());
+        if (err) {
+            logger.error('Error while registering', {error: err});
+            throw new Error('Error while registering');
+        }
     }
     async isUserGenuineSeller(id : number): Promise<number | Error> {
         let err : Error;
@@ -88,6 +90,15 @@ export class SellerService implements ISellerServices {
         }
         if(amount===0 && user.type=='SELLER'){
             let catalog : ICatalogModel
+            const catalogObject: ICatalogModel = this.Catalog.build({
+                sellerId: id,
+            });
+            let catalogData:any;
+            [err, catalogData] = await nest(catalogObject.save());
+            if (err) {
+                logger.error('Error while registering catalog', {error: err});
+                throw new Error('Error while registering catalog');
+            }
             [err, catalog]= await nest(this.Catalog.findOne({where : {sellerId : id}}));
             if(err){
                 logger.error('Error in fetching data from the file', {Error: err});
